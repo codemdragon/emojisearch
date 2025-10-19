@@ -299,227 +299,97 @@
     <div class="copy-notification" id="copy-notification">Emoji copied!</div>
 
     <script>
-        // Sample emoji data - in a real application, this would be in a separate JSON file
-        const emojis = [
-            { emoji: "😀", name: "Grinning Face", tags: ["happy", "smile", "joy"] },
-            { emoji: "😂", name: "Face with Tears of Joy", tags: ["laugh", "funny", "tears"] },
-            { emoji: "🥰", name: "Smiling Face with Hearts", tags: ["love", "affection", "hearts"] },
-            { emoji: "🤔", name: "Thinking Face", tags: ["thinking", "ponder", "curious"] },
-            { emoji: "😎", name: "Smiling Face with Sunglasses", tags: ["cool", "confident", "sunglasses"] },
-            { emoji: "🥺", name: "Pleading Face", tags: ["pleading", "sad", "puppy eyes"] },
-            { emoji: "😭", name: "Loudly Crying Face", tags: ["cry", "sad", "tears"] },
-            { emoji: "❤️", name: "Red Heart", tags: ["love", "heart", "red"] },
-            { emoji: "👍", name: "Thumbs Up", tags: ["approve", "ok", "good"] },
-            { emoji: "👋", name: "Waving Hand", tags: ["hello", "goodbye", "wave"] },
-            { emoji: "🎉", name: "Party Popper", tags: ["celebrate", "party", "congratulations"] },
-            { emoji: "🔥", name: "Fire", tags: ["hot", "lit", "trending"] },
-            { emoji: "⭐", name: "Star", tags: ["favorite", "rating", "star"] },
-            { emoji: "🍕", name: "Pizza", tags: ["food", "italian", "cheese"] },
-            { emoji: "🚀", name: "Rocket", tags: ["launch", "space", "fast"] },
-            { emoji: "💡", name: "Light Bulb", tags: ["idea", "bright", "solution"] },
-            { emoji: "📚", name: "Books", tags: ["education", "study", "learning"] },
-            { emoji: "🎵", name: "Musical Note", tags: ["music", "sound", "melody"] },
-            { emoji: "🏆", name: "Trophy", tags: ["win", "award", "champion"] },
-            { emoji: "🌈", name: "Rainbow", tags: ["colorful", "pride", "hope"] },
-            { emoji: "🐶", name: "Dog Face", tags: ["animal", "pet", "dog"] },
-            { emoji: "🐱", name: "Cat Face", tags: ["animal", "pet", "cat"] },
-            { emoji: "🌮", name: "Taco", tags: ["food", "mexican", "taco"] },
-            { emoji: "🍦", name: "Ice Cream", tags: ["food", "dessert", "sweet"] },
-            { emoji: "⚽", name: "Soccer Ball", tags: ["sports", "football", "game"] },
-            { emoji: "🎮", name: "Video Game", tags: ["game", "play", "console"] },
-            { emoji: "📱", name: "Mobile Phone", tags: ["phone", "smartphone", "tech"] },
-            { emoji: "💻", name: "Laptop", tags: ["computer", "tech", "work"] },
-            { emoji: "🎂", name: "Birthday Cake", tags: ["food", "dessert", "celebration"] },
-            { emoji: "🎁", name: "Wrapped Gift", tags: ["present", "celebration", "birthday"] }
-        ];
-
-        // Function to show the selected page and hide others
-        function showPage(pageId) {
-            // Hide all pages
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            // Show the selected page
-            document.getElementById(pageId).classList.add('active');
-            
-            // If showing the table page, populate the table
-            if (pageId === 'table-page') {
+        let emojis = [];
+    
+        async function loadEmojis() {
+            try {
+                const response = await fetch('emojis.json');
+                emojis = await response.json();
                 populateTable();
-            }
-            
-            // If showing the search page, populate the grid with all emojis
-            if (pageId === 'search-page') {
                 populateGrid(emojis);
                 updateResultsCount(emojis.length);
+            } catch (error) {
+                console.error('⚠️ Failed to load emojis:', error);
+                const tableBody = document.getElementById('emoji-table-body');
+                tableBody.innerHTML = '<tr><td colspan="4">❌ Could not load emojis.json</td></tr>';
             }
         }
-
-        // Function to populate the table with emoji data
+    
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if (pageId === 'table-page') populateTable();
+            if (pageId === 'search-page') populateGrid(emojis);
+        }
+    
         function populateTable() {
             const tableBody = document.getElementById('emoji-table-body');
             tableBody.innerHTML = '';
-            
             emojis.forEach(emoji => {
                 const row = document.createElement('tr');
-                
-                // Emoji cell
-                const emojiCell = document.createElement('td');
-                emojiCell.className = 'emoji-cell';
-                emojiCell.textContent = emoji.emoji;
-                
-                // Name cell
-                const nameCell = document.createElement('td');
-                nameCell.textContent = emoji.name;
-                
-                // Tags cell
-                const tagsCell = document.createElement('td');
-                tagsCell.className = 'tags-cell';
-                emoji.tags.forEach(tag => {
-                    const tagSpan = document.createElement('span');
-                    tagSpan.className = 'tag';
-                    tagSpan.textContent = tag;
-                    tagsCell.appendChild(tagSpan);
-                });
-                
-                // Copy button cell
-                const copyCell = document.createElement('td');
-                const copyButton = document.createElement('button');
-                copyButton.className = 'copy-btn';
-                copyButton.textContent = 'Copy';
-                copyButton.onclick = () => copyToClipboard(emoji.emoji);
-                copyCell.appendChild(copyButton);
-                
-                // Append all cells to the row
-                row.appendChild(emojiCell);
-                row.appendChild(nameCell);
-                row.appendChild(tagsCell);
-                row.appendChild(copyCell);
-                
-                // Append row to table body
+                row.innerHTML = `
+                    <td class="emoji-cell">${emoji.emoji}</td>
+                    <td>${emoji.name}</td>
+                    <td class="tags-cell">${emoji.tags.map(tag => `<span class='tag'>${tag}</span>`).join('')}</td>
+                    <td><button class="copy-btn" onclick="copyToClipboard('${emoji.emoji}')">Copy</button></td>
+                `;
                 tableBody.appendChild(row);
             });
         }
-
-        // Function to populate the grid with emoji data
+    
         function populateGrid(emojiList) {
             const emojiGrid = document.getElementById('emoji-grid');
             emojiGrid.innerHTML = '';
-            
             if (emojiList.length === 0) {
-                emojiGrid.innerHTML = '<div class="no-results">No emojis found matching your search.</div>';
+                emojiGrid.innerHTML = '<div class="no-results">❌ No emojis found</div>';
                 return;
             }
-            
             emojiList.forEach(emoji => {
                 const card = document.createElement('div');
                 card.className = 'emoji-card';
-                
-                // Emoji display
-                const emojiDisplay = document.createElement('div');
-                emojiDisplay.className = 'emoji-display';
-                emojiDisplay.textContent = emoji.emoji;
-                
-                // Emoji name
-                const emojiName = document.createElement('div');
-                emojiName.className = 'emoji-name';
-                emojiName.textContent = emoji.name;
-                
-                // Emoji tags
-                const emojiTags = document.createElement('div');
-                emojiTags.className = 'emoji-tags';
-                emoji.tags.forEach(tag => {
-                    const tagSpan = document.createElement('span');
-                    tagSpan.className = 'tag';
-                    tagSpan.textContent = tag;
-                    emojiTags.appendChild(tagSpan);
-                });
-                
-                // Copy button
-                const copyButton = document.createElement('button');
-                copyButton.className = 'copy-btn';
-                copyButton.textContent = 'Copy Emoji';
-                copyButton.onclick = () => copyToClipboard(emoji.emoji);
-                
-                // Append all elements to the card
-                card.appendChild(emojiDisplay);
-                card.appendChild(emojiName);
-                card.appendChild(emojiTags);
-                card.appendChild(copyButton);
-                
-                // Append card to grid
+                card.innerHTML = `
+                    <div class="emoji-display">${emoji.emoji}</div>
+                    <div class="emoji-name">${emoji.name}</div>
+                    <div class="emoji-tags">${emoji.tags.map(tag => `<span class='tag'>${tag}</span>`).join('')}</div>
+                    <button class="copy-btn" onclick="copyToClipboard('${emoji.emoji}')">📋 Copy</button>
+                `;
                 emojiGrid.appendChild(card);
             });
         }
-
-        // Function to copy emoji to clipboard
+    
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                // Show copy notification
                 const notification = document.getElementById('copy-notification');
-                notification.textContent = `Copied: ${text}`;
+                notification.textContent = `✅ Copied: ${text}`;
                 notification.classList.add('show');
-                
-                // Hide notification after 2 seconds
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 2000);
+                setTimeout(() => notification.classList.remove('show'), 2000);
             }).catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('Failed to copy emoji. Please try again.');
+                console.error('❌ Copy failed:', err);
             });
         }
-
-        // Function to search emojis
+    
         function searchEmojis() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            
-            if (!searchTerm) {
-                populateGrid(emojis);
-                updateResultsCount(emojis.length);
-                return;
-            }
-            
-            const filteredEmojis = emojis.filter(emoji => {
-                // Check if search term matches name or any tag
-                return emoji.name.toLowerCase().includes(searchTerm) || 
-                       emoji.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-            });
-            
-            populateGrid(filteredEmojis);
-            updateResultsCount(filteredEmojis.length);
+            const term = document.getElementById('search-input').value.toLowerCase();
+            const filtered = emojis.filter(e =>
+                e.name.toLowerCase().includes(term) ||
+                e.tags.some(t => t.toLowerCase().includes(term))
+            );
+            populateGrid(filtered);
+            updateResultsCount(filtered.length);
         }
-
-        // Function to update the results count
+    
         function updateResultsCount(count) {
-            const resultsCount = document.getElementById('results-count');
-            if (count === emojis.length) {
-                resultsCount.textContent = `Showing all ${count} emojis`;
-            } else {
-                resultsCount.textContent = `Found ${count} emoji${count !== 1 ? 's' : ''}`;
-            }
+            const el = document.getElementById('results-count');
+            el.textContent = count === emojis.length
+                ? `📦 Showing all ${count} emojis`
+                : `🔍 Found ${count} emoji${count !== 1 ? 's' : ''}`;
         }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate the table on initial load
-            populateTable();
-            
-            // Add event listener to search input for dynamic searching
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEmojis();
             document.getElementById('search-input').addEventListener('input', searchEmojis);
-            
-            // Focus on search input when search page is shown
-            document.querySelectorAll('.nav-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    if (this.textContent === 'Search Emojis') {
-                        setTimeout(() => {
-                            document.getElementById('search-input').focus();
-                        }, 100);
-                    }
-                });
-            });
         });
     </script>
+
 </body>
 </html>
