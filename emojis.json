@@ -52,7 +52,7 @@
   {"emoji": "👊", "name": "Oncoming Fist", "tags": ["fist bump", "power", "pound"]},
   {"emoji": "✊", "name": "Raised Fist", "tags": ["power", "protest", "resist", "fist"]},
 
-  {"emoji": "🚀", "name": "Rocket", "tags": ["launch", "fast", "upgrade", "deploy", "space", "🚀"]},
+  {"emoji": "🚀", "name": "Rocket", "tags": ["launch", "fast", "upgrade", "deploy", "space", "explore","🚀"]},
   {"emoji": "⬇️", "name": "Down Arrow", "tags": ["download", "down", "save", "descend", "⬇️"]},
   {"emoji": "📥", "name": "Inbox Tray", "tags": ["download", "save", "receive", "inbox", "📥"]},
   {"emoji": "💾", "name": "Floppy Disk", "tags": ["save", "memory", "disk", "old school", "💾"]},
