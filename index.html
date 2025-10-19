@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #4a6ee0;
+            margin-bottom: 10px;
+        }
+
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #4a6ee0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .nav-btn:hover {
+            background-color: #3a5bc7;
+        }
+
+        .page {
+            display: none;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Table Page Styles */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        th {
+            background-color: #f1f5fd;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f9fafc;
+        }
+
+        .emoji-cell {
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .tags-cell {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag {
+            background-color: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .copy-btn {
+            padding: 5px 10px;
+            background-color: #4a6ee0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: #3a5bc7;
+        }
+
+        /* Search Page Styles */
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a6ee0;
+            box-shadow: 0 0 0 2px rgba(74, 110, 224, 0.2);
+        }
+
+        .search-results-count {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .emoji-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .emoji-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji-display {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .emoji-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .emoji-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .emoji-card .copy-btn {
+            width: 100%;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #777;
+        }
+
+        /* Copy notification */
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4a6ee0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .emoji-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .nav-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Emoji Finder</h1>
+            <p>Find and copy your favorite emojis</p>
+        </header>
+
+        <div class="page-nav">
+            <button class="nav-btn" onclick="showPage('table-page')">Table View</button>
+            <button class="nav-btn" onclick="showPage('search-page')">Search Emojis</button>
+        </div>
+
+        <!-- Table Page -->
+        <div id="table-page" class="page active">
+            <h2>All Emojis</h2>
+            <div class="table-container">
+                <table id="emoji-table">
+                    <thead>
+                        <tr>
+                            <th>Emoji</th>
+                            <th>Name</th>
+                            <th>Tags</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emoji-table-body">
+                        <!-- Table rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Search Page -->
+        <div id="search-page" class="page">
+            <h2>Search Emojis</h2>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search by name or tags...">
+                <div class="search-results-count" id="results-count"></div>
+            </div>
+            <div class="emoji-grid" id="emoji-grid">
+                <!-- Emoji cards will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <footer>
+            <p>Emoji Finder &copy; 2023</p>
+        </footer>
+    </div>
+
+    <!-- Copy notification -->
+    <div class="copy-notification" id="copy-notification">Emoji copied!</div>
+
+    <script>
+        // Sample emoji data - in a real application, this would be in a separate JSON file
+        const emojis = [
+            { emoji: "😀", name: "Grinning Face", tags: ["happy", "smile", "joy"] },
+            { emoji: "😂", name: "Face with Tears of Joy", tags: ["laugh", "funny", "tears"] },
+            { emoji: "🥰", name: "Smiling Face with Hearts", tags: ["love", "affection", "hearts"] },
+            { emoji: "🤔", name: "Thinking Face", tags: ["thinking", "ponder", "curious"] },
+            { emoji: "😎", name: "Smiling Face with Sunglasses", tags: ["cool", "confident", "sunglasses"] },
+            { emoji: "🥺", name: "Pleading Face", tags: ["pleading", "sad", "puppy eyes"] },
+            { emoji: "😭", name: "Loudly Crying Face", tags: ["cry", "sad", "tears"] },
+            { emoji: "❤️", name: "Red Heart", tags: ["love", "heart", "red"] },
+            { emoji: "👍", name: "Thumbs Up", tags: ["approve", "ok", "good"] },
+            { emoji: "👋", name: "Waving Hand", tags: ["hello", "goodbye", "wave"] },
+            { emoji: "🎉", name: "Party Popper", tags: ["celebrate", "party", "congratulations"] },
+            { emoji: "🔥", name: "Fire", tags: ["hot", "lit", "trending"] },
+            { emoji: "⭐", name: "Star", tags: ["favorite", "rating", "star"] },
+            { emoji: "🍕", name: "Pizza", tags: ["food", "italian", "cheese"] },
+            { emoji: "🚀", name: "Rocket", tags: ["launch", "space", "fast"] },
+            { emoji: "💡", name: "Light Bulb", tags: ["idea", "bright", "solution"] },
+            { emoji: "📚", name: "Books", tags: ["education", "study", "learning"] },
+            { emoji: "🎵", name: "Musical Note", tags: ["music", "sound", "melody"] },
+            { emoji: "🏆", name: "Trophy", tags: ["win", "award", "champion"] },
+            { emoji: "🌈", name: "Rainbow", tags: ["colorful", "pride", "hope"] },
+            { emoji: "🐶", name: "Dog Face", tags: ["animal", "pet", "dog"] },
+            { emoji: "🐱", name: "Cat Face", tags: ["animal", "pet", "cat"] },
+            { emoji: "🌮", name: "Taco", tags: ["food", "mexican", "taco"] },
+            { emoji: "🍦", name: "Ice Cream", tags: ["food", "dessert", "sweet"] },
+            { emoji: "⚽", name: "Soccer Ball", tags: ["sports", "football", "game"] },
+            { emoji: "🎮", name: "Video Game", tags: ["game", "play", "console"] },
+            { emoji: "📱", name: "Mobile Phone", tags: ["phone", "smartphone", "tech"] },
+            { emoji: "💻", name: "Laptop", tags: ["computer", "tech", "work"] },
+            { emoji: "🎂", name: "Birthday Cake", tags: ["food", "dessert", "celebration"] },
+            { emoji: "🎁", name: "Wrapped Gift", tags: ["present", "celebration", "birthday"] }
+        ];
+
+        // Function to show the selected page and hide others
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show the selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // If showing the table page, populate the table
+            if (pageId === 'table-page') {
+                populateTable();
+            }
+            
+            // If showing the search page, populate the grid with all emojis
+            if (pageId === 'search-page') {
+                populateGrid(emojis);
+                updateResultsCount(emojis.length);
+            }
+        }
+
+        // Function to populate the table with emoji data
+        function populateTable() {
+            const tableBody = document.getElementById('emoji-table-body');
+            tableBody.innerHTML = '';
+            
+            emojis.forEach(emoji => {
+                const row = document.createElement('tr');
+                
+                // Emoji cell
+                const emojiCell = document.createElement('td');
+                emojiCell.className = 'emoji-cell';
+                emojiCell.textContent = emoji.emoji;
+                
+                // Name cell
+                const nameCell = document.createElement('td');
+                nameCell.textContent = emoji.name;
+                
+                // Tags cell
+                const tagsCell = document.createElement('td');
+                tagsCell.className = 'tags-cell';
+                emoji.tags.forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'tag';
+                    tagSpan.textContent = tag;
+                    tagsCell.appendChild(tagSpan);
+                });
+                
+                // Copy button cell
+                const copyCell = document.createElement('td');
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-btn';
+                copyButton.textContent = 'Copy';
+                copyButton.onclick = () => copyToClipboard(emoji.emoji);
+                copyCell.appendChild(copyButton);
+                
+                // Append all cells to the row
+                row.appendChild(emojiCell);
+                row.appendChild(nameCell);
+                row.appendChild(tagsCell);
+                row.appendChild(copyCell);
+                
+                // Append row to table body
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to populate the grid with emoji data
+        function populateGrid(emojiList) {
+            const emojiGrid = document.getElementById('emoji-grid');
+            emojiGrid.innerHTML = '';
+            
+            if (emojiList.length === 0) {
+                emojiGrid.innerHTML = '<div class="no-results">No emojis found matching your search.</div>';
+                return;
+            }
+            
+            emojiList.forEach(emoji => {
+                const card = document.createElement('div');
+                card.className = 'emoji-card';
+                
+                // Emoji display
+                const emojiDisplay = document.createElement('div');
+                emojiDisplay.className = 'emoji-display';
+                emojiDisplay.textContent = emoji.emoji;
+                
+                // Emoji name
+                const emojiName = document.createElement('div');
+                emojiName.className = 'emoji-name';
+                emojiName.textContent = emoji.name;
+                
+                // Emoji tags
+                const emojiTags = document.createElement('div');
+                emojiTags.className = 'emoji-tags';
+                emoji.tags.forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'tag';
+                    tagSpan.textContent = tag;
+                    emojiTags.appendChild(tagSpan);
+                });
+                
+                // Copy button
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-btn';
+                copyButton.textContent = 'Copy Emoji';
+                copyButton.onclick = () => copyToClipboard(emoji.emoji);
+                
+                // Append all elements to the card
+                card.appendChild(emojiDisplay);
+                card.appendChild(emojiName);
+                card.appendChild(emojiTags);
+                card.appendChild(copyButton);
+                
+                // Append card to grid
+                emojiGrid.appendChild(card);
+            });
+        }
+
+        // Function to copy emoji to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show copy notification
+                const notification = document.getElementById('copy-notification');
+                notification.textContent = `Copied: ${text}`;
+                notification.classList.add('show');
+                
+                // Hide notification after 2 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy emoji. Please try again.');
+            });
+        }
+
+        // Function to search emojis
+        function searchEmojis() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            if (!searchTerm) {
+                populateGrid(emojis);
+                updateResultsCount(emojis.length);
+                return;
+            }
+            
+            const filteredEmojis = emojis.filter(emoji => {
+                // Check if search term matches name or any tag
+                return emoji.name.toLowerCase().includes(searchTerm) || 
+                       emoji.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+            });
+            
+            populateGrid(filteredEmojis);
+            updateResultsCount(filteredEmojis.length);
+        }
+
+        // Function to update the results count
+        function updateResultsCount(count) {
+            const resultsCount = document.getElementById('results-count');
+            if (count === emojis.length) {
+                resultsCount.textContent = `Showing all ${count} emojis`;
+            } else {
+                resultsCount.textContent = `Found ${count} emoji${count !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate the table on initial load
+            populateTable();
+            
+            // Add event listener to search input for dynamic searching
+            document.getElementById('search-input').addEventListener('input', searchEmojis);
+            
+            // Focus on search input when search page is shown
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.textContent === 'Search Emojis') {
+                        setTimeout(() => {
+                            document.getElementById('search-input').focus();
+                        }, 100);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
